@@ -1,0 +1,68 @@
+<h1>Lisiting Entity</h1>
+
+<p>Use the form below to add a listing to the database!</p>
+
+<form id="addRecord">
+    <fieldset>
+
+        <label for="address">Address:</label><br>
+        <input class="addRecord" type="text" name="address" id="address"><br>
+		<label for="city">City:</label><br>
+        <input class="addRecord" type="text" name="city" id="city"><br>
+		<label for="zip-code">Zip-Code:</label><br>
+        <input class="addRecord" type="text" name="zip-code" id="zip-code"><br>
+		<label for="property-type">Property-Type:</label><br>
+        <input class="addRecord" type="text" name="property-type" id="property-type"><br>
+		<label for="by-owner">By-Owner:</label><br>
+        <input class="addRecord" type="text" name="by-owner" id="by-owner"><br>
+		<label for="date-listed">Date-Listed:</label><br>
+        <input class="addRecord" type="text" name="date-listed" id="date-listed"><br>
+		<label for="list-price">List-Price:</label><br>
+        <input class="addRecord" type="text" name="list-price" id="list-price"><br>
+		<label for="date-sold">Date-Sold:</label><br>
+        <input class="addRecord" type="text" name="date-sold" id="date-sold"><br>
+		<label for="sell-price">Sell-Price:</label><br>
+        <input class="addRecord" type="text" name="sell-price" id="sell-price"><br>
+        <button type="button" name="Submit" id="addRecordButton">Submit</button>
+   	
+    </fieldset>
+</form><br>
+
+<p>The table below shows the records you have stored in the database.</p>
+
+<table id="listingTable">
+    <tr>
+        <th>Address</th>
+		<th>City</th>
+		<th>Zip-Code</th>
+		<th>Property-Type</th>
+		<th>By-Owner</th>
+		<th>Date-Listed</th>
+		<th>List-Price</th>
+		<th>Date-Sold</th>
+		<th>Sell-Price</th>
+    </tr>
+    
+    {{#if results}}
+        {{#each results}}
+            <tr>
+                <td>{{this.address}}</td>
+				<td>{{this.city}}</td>
+				<td>{{this.zip-code}}</td>
+				<td>{{this.property-type}}</td>
+				<td>{{this.by-owner}}</td>
+				<td>{{this.date-listed}}</td>
+				<td>{{this.list-price}}</td>
+				<td>{{this.date-sold}}</td>
+				<td>{{this.sell-price}}</td>
+                <td><a href="/editRecord?id={{this.listing}}"><input type="button" value="Update"></a></td>
+                <td>
+                    <input type="button" name="delete" value="Delete" onClick="deleteData('listingTable',{{this.id}})">
+                    <input type="hidden" id="delete{{this.id}}">
+                </td>
+            </tr>
+        {{/each}}
+    {{/if}}
+</table>
+
+<script src="public/db.js"></script>
