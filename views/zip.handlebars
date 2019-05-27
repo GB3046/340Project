@@ -1,0 +1,36 @@
+<h1>Zip-Code Entity</h1>
+
+<p>Use the form below to add a zip-code to the database!</p>
+
+<form id="addZip">
+    <fieldset>
+
+        <label for="Code">Zip-Code:</label><br>
+        <input class="addRecord" type="text" name="Code" id="Code"><br>
+        <button type="button" name="Submit" id="addZipButton">Submit</button>
+   	
+    </fieldset>
+</form><br>
+
+<p>The table below shows the records you have stored in the database.</p>
+
+<table id="zipTable">
+    <tr>
+        <th>Code</th>
+    </tr>
+    
+    {{#if results}}
+        {{#each results}}
+            <tr>
+                <td>{{this.Code}}</td>
+                <td><a href="/editRecord?id={{this.Code}}"><input type="button" value="Update"></a></td>
+                <td>
+                    <input type="button" name="delete" value="Delete" onClick="deleteData('dataTable',{{this.Code}})">
+                    <input type="hidden" id="delete{{this.Code}}">
+                </td>
+            </tr>
+        {{/each}}
+    {{/if}}
+</table>
+
+<script src="public/dbZ.js"></script>

@@ -1,0 +1,36 @@
+<h1>Property-Type Entity</h1>
+
+<p>Use the form below to add a property-type to the database!</p>
+
+<form id="addPropertyType">
+    <fieldset>
+
+	<label for="Name">Name:</label><br>
+        <input class="addRecord" type="text" name="Name" id="Name"><br>
+	<button type="button" name="Submit" id="addPropertyTypeButton">Submit</button>
+   	
+    </fieldset>
+</form><br>
+
+<p>The table below shows the records you have stored in the database.</p>
+
+<table id="propertyTypeTable">
+    <tr>
+        <th>Name</th>
+    </tr>
+    
+    {{#if results}}
+        {{#each results}}
+            <tr>
+		<td>{{this.Name}}</td>
+		<td><a href="/editRecord?id={{this.Id}}"><input type="button" value="Update"></a></td>
+                <td>
+                    <input type="button" name="delete" value="Delete" onClick="deleteData('propertyTypeTable',{{this.Id}})">
+                    <input type="hidden" id="delete{{this.Id}}">
+                </td>
+            </tr>
+        {{/each}}
+    {{/if}}
+</table>
+
+<script src="public/dbPT.js"></script>

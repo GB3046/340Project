@@ -1,0 +1,24 @@
+<h1>Listing-Feature Entity</h1>
+
+<p>The table below shows the records you have stored in the database.</p>
+
+<table id="listingFeatureTable">
+    <tr>
+        <th>Listing</th>
+	<th>Feature</th>
+    </tr>
+    
+    {{#if results}}
+        {{#each results}}
+            <tr>
+		<td>{{this.Listing}}</td>
+                <td>{{this.Feature}}</td>
+		<td><a href="/editRecord?id={{this.id}}"><input type="button" value="Update"></a></td>
+                <td>
+                    <input type="button" name="delete" value="Delete" onClick="deleteData('listingTable',{{this.id}})">
+                    <input type="hidden" id="delete{{this.id}}">
+                </td>
+            </tr>
+        {{/each}}
+    {{/if}}
+</table>

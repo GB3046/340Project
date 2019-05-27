@@ -1,0 +1,40 @@
+<h1>City Entity</h1>
+
+<p>Use the form below to add a city to the database!</p>
+
+<form id="addCity">
+    <fieldset>
+
+	<label for="Name">Name:</label><br>
+        <input class="addRecord" type="text" name="Name" id="Name"><br>
+        <label for="State">State:</label><br>
+        <input class="addRecord" type="text" name="State" id="State"><br>
+        <button type="button" name="Submit" id="addCityButton">Submit</button>
+   	
+    </fieldset>
+</form><br>
+
+<p>The table below shows the records you have stored in the database.</p>
+
+<table id="cityTable">
+    <tr>
+        <th>Name</th>
+        <th>State</th>
+    </tr>
+    
+    {{#if results}}
+        {{#each results}}
+            <tr>
+                <td>{{this.Name}}</td>
+                <td>{{this.State}}</td>
+                <td><a href="/editRecord?id={{this.city}}"><input type="button" value="Update"></a></td>
+                <td>
+                    <input type="button" name="delete" value="Delete" onClick="deleteData('dataTable',{{this.City}})">
+                    <input type="hidden" id="delete{{this.City}}">
+                </td>
+            </tr>
+        {{/each}}
+    {{/if}}
+</table>
+
+<script src="public/dbC.js"></script>
