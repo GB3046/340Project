@@ -5,12 +5,15 @@
 <form id="addCity">
     <fieldset>
 
-	<label for="Name">Name:</label><br>
+        <label for="Name">Name:</label><br>
         <input class="addRecord" type="text" name="Name" id="Name"><br>
         <label for="State">State:</label><br>
-        <input class="addRecord" type="text" name="State" id="State"><br>
+        <select class="editRecord" name="State" id="State">
+            {{#each states}}
+            <option value="{{this.Id}}">{{this.Name}}</option>
+            {{/each}}
+        </select><br />
         <button type="button" name="Submit" id="addCityButton">Submit</button>
-   	
     </fieldset>
 </form><br>
 
@@ -27,7 +30,7 @@
             <tr>
                 <td>{{this.Name}}</td>
                 <td>{{this.State}}</td>
-                <td><a href="/editRecord?id={{this.city}}"><input type="button" value="Update"></a></td>
+                <td><a href="/editCity?id={{this.Id}}"><input type="button" value="Update"></a></td>
                 <td>
                     <input type="button" name="delete" value="Delete" onClick="deleteData('dataTable',{{this.City}})">
                     <input type="hidden" id="delete{{this.City}}">

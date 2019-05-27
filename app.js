@@ -208,14 +208,14 @@ app.get('/city', function(req, res, next) {
 
     var context = {};
 	
-    mysql.pool.query('SELECT * FROM City', function(err, rows, fields){
+    mysql.pool.query('SELECT City.Id, City.Name, State.Name as State FROM City INNER JOIN State WHERE City.State = State.Id ORDER BY State.Name, City.Name', function(err, rows, fields){
 		
 		if(err){
-		
+	
 			next(err);
 			console.log(err);
 			return;
-		}
+        }
 	
 		var params = [];
 	
@@ -228,9 +228,34 @@ app.get('/city', function(req, res, next) {
 			params.push(addItem);
 		}
 	
-		context.results = params;
+        context.results = params;
 
-		res.render('city', context);
+        mysql.pool.query('SELECT Id, Name FROM State ORDER BY Name ASC', function (err, rows, fields) {
+
+            if (err) {
+                next(err);
+                console.log(err);
+                return;
+            }
+
+            var states = [];
+
+            for (var row in rows) {
+
+                var thisItem = {
+                    'Id': rows[row].Id,
+                    'Name': rows[row].Name
+                };
+
+                states.push(thisItem);
+            }
+
+            context.states = states;
+
+            res.render('city', context);
+
+        });
+
 		
 	})
 });
@@ -409,6 +434,75 @@ app.get('/insertListing',function(req,res,next){
             context.inserted = result.insertId;
             res.send(JSON.stringify(context));
     })
+});
+
+
+//Edits a record from City using AJAX calls from the home page via script
+app.get('/editCity', function (req, res, next) {
+
+    var context = {};
+
+    mysql.pool.query('SELECT * FROM City WHERE Id = ? LIMIT 1', [req.query.id], function (err, rows, fields) {
+
+        if (err) {
+
+            next(err);
+            console.log(err);
+            return;
+        }
+
+        var states = [];
+
+        var thisItem = {
+            'Id': rows[0].Id,
+            'Name': rows[0].Name,
+            'State': rows[0].State
+        };
+
+        context.results = thisItem;
+
+        mysql.pool.query('SELECT Id, Name FROM State ORDER BY Name ASC', function (err, rows, fields) {
+
+            if (err) {
+                next(err);
+                console.log(err);
+                return;
+            }
+
+            for (var row in rows) {
+
+                var thisItem = {
+                    'Id': rows[row].Id,
+                    'Name': rows[row].Name
+                };
+
+                states.push(thisItem);
+            }
+
+            context.states = states;
+
+            res.render('update_city', context);
+        });
+
+    })
+});
+
+app.put('/editCity/:id', function (req, res) {
+    console.log(req.body)
+    console.log(req.params.id)
+    var sql = "UPDATE City SET Name=?, State=? WHERE Id=?";
+    var inserts = [req.body.Name, req.body.State, req.params.id];
+    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+            console.log(error)
+            res.write(JSON.stringify(error));
+            res.end();
+        } else {
+            res.status(200);
+            res.end();
+        }
+    });
 });
 
 //Deletes a record in the database using an id generated from the home page via script

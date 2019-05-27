@@ -1,0 +1,20 @@
+<h1>Update City</h1>
+
+<form id="updateCity">
+    <fieldset>
+
+        <label for="Name">City Name:</label><br>
+        <input class="editRecord" type="text" name="Name" id="Name" value="{{results.Name}}"><br>
+        <label for="State">State:</label><br>
+        <select class="editRecord" name="State" id="State">
+            {{#each states}}
+            <option value="{{this.Id}}">{{this.Name}}</option>
+            {{/each}}
+        </select><br />
+        <!--<input class="editRecord" type="text" name="State" id="State" value="{{results.State}}"><br>-->
+        <button type="button" name="Submit" id="editCityButton" onclick="updateCity({{results.Id}})">Submit</button>
+    </fieldset>
+</form><br>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="public/db_update.js"></script>
+<script defer>selectState({{results.State}});</script>
