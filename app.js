@@ -1,16 +1,8 @@
 var express = require("express");               
 var app = express();
 var bodyParser = require("body-parser"); 
-var handlebars = require("express-handlebars").create({defaultLayout: "main"});
-var mysql = require("mysql");
-
-//MySQL Credentials
-var pool = mysql.createConnection({
-    host:'classmysql.engr.oregonstate.edu',
-    user:'cs340_bauergr',
-    password:'3228',
-    database:'cs340_bauergr'
-});
+var handlebars = require("express-handlebars").create({ defaultLayout: "main" });
+var mysql = require('./dbcon.js'); //moved Mysql credentials to dbcon.js
 
 app.engine("handlebars", handlebars.engine);       
 app.set("view engine", "handlebars");
@@ -39,7 +31,7 @@ app.get('/listing', function(req, res, next) {
 
     var context = {};
 	
-    pool.query('SELECT * FROM Listing', function(err, rows, fields){
+    mysql.pool.query('SELECT * FROM Listing', function(err, rows, fields){
 		
 		if(err){
 		
@@ -81,7 +73,7 @@ app.get('/listingFeature', function(req, res, next) {
 
     var context = {};
 	
-    pool.query('SELECT * FROM `ListingFeature`', function(err, rows, fields){
+    mysql.pool.query('SELECT * FROM `ListingFeature`', function(err, rows, fields){
 		
     if(err){
 		
@@ -115,7 +107,7 @@ app.get('/property', function(req, res, next) {
 
     var context = {};
 	
-    pool.query('SELECT * FROM `PropertyType`', function(err, rows, fields){
+    mysql.pool.query('SELECT * FROM `PropertyType`', function(err, rows, fields){
 		
 		if(err){
 		
@@ -149,7 +141,7 @@ app.get('/state', function(req, res, next) {
 
     var context = {};
 	
-    pool.query('SELECT * FROM State', function(err, rows, fields){
+    mysql.pool.query('SELECT * FROM State', function(err, rows, fields){
 		
 		if(err){
 		
@@ -183,7 +175,7 @@ app.get('/zip', function(req, res, next) {
 
     var context = {};
 	
-    pool.query('SELECT * FROM `ZipCode`', function(err, rows, fields){
+    mysql.pool.query('SELECT * FROM `ZipCode`', function(err, rows, fields){
 		
 		if(err){
 		
@@ -216,7 +208,7 @@ app.get('/city', function(req, res, next) {
 
     var context = {};
 	
-    pool.query('SELECT * FROM City', function(err, rows, fields){
+    mysql.pool.query('SELECT * FROM City', function(err, rows, fields){
 		
 		if(err){
 		
@@ -251,7 +243,7 @@ app.get('/feature', function(req, res, next) {
 
     var context = {};
 	
-    pool.query('SELECT * FROM Feature', function(err, rows, fields){
+    mysql.pool.query('SELECT * FROM Feature', function(err, rows, fields){
 		
 		if(err){
 		
@@ -284,7 +276,7 @@ app.get('/insertPropertyType',function(req,res,next){
 
     var context = {};
     
-    pool.query("INSERT INTO `PropertyType` (`Name`) VALUES (?)",
+    mysql.pool.query("INSERT INTO `PropertyType` (`Name`) VALUES (?)",
         [req.query.Name],
 
         function(err, result){
@@ -306,7 +298,7 @@ app.get('/insertState',function(req,res,next){
 
     var context = {};
     
-    pool.query("INSERT INTO `State` (`Name`) VALUES (?)",
+    mysql.pool.query("INSERT INTO `State` (`Name`) VALUES (?)",
         [req.query.Name],
 
         function(err, result){
@@ -328,7 +320,7 @@ app.get('/insertZip',function(req,res,next){
 
     var context = {};
     
-    pool.query("INSERT INTO `ZipCode` (`Code`) VALUES (?)",
+    mysql.pool.query("INSERT INTO `ZipCode` (`Code`) VALUES (?)",
         [req.query.Code],
 
         function(err, result){
@@ -350,7 +342,7 @@ app.get('/insertCity',function(req,res,next){
 
     var context = {};
     
-    pool.query("INSERT INTO `City` (`Name`, `State`) VALUES (?, ?)",
+    mysql.pool.query("INSERT INTO `City` (`Name`, `State`) VALUES (?, ?)",
         [req.query.Name,
 		 req.query.State], 
 
@@ -374,7 +366,7 @@ app.get('/insertFeature',function(req,res,next){
 
     var context = {};
     
-    pool.query("INSERT INTO `Feature` (`Name`) VALUES (?)",
+    mysql.pool.query("INSERT INTO `Feature` (`Name`) VALUES (?)",
         [req.query.Name], 
 
         function(err, result){
@@ -396,7 +388,7 @@ app.get('/insertListing',function(req,res,next){
 
     var context = {};
     
-    pool.query("INSERT INTO `Listing` (`Address`, `City`, `ZipCode`, `PropertyType`, `ByOwner`, `DateListed`, `ListPrice`, `DateSold`, `SellPrice`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    mysql.pool.query("INSERT INTO `Listing` (`Address`, `City`, `ZipCode`, `PropertyType`, `ByOwner`, `DateListed`, `ListPrice`, `DateSold`, `SellPrice`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [req.query.Address,
 		 req.query.City,
 		 req.query.ZipCode,
@@ -422,7 +414,7 @@ app.get('/insertListing',function(req,res,next){
 //Deletes a record in the database using an id generated from the home page via script
 //app.get('/delete', function(req, res, next) {
 //    var context = {};
-//    pool.query("DELETE FROM `workouts` WHERE id = ?",
+//    mysql.pool.query("DELETE FROM `workouts` WHERE id = ?",
 //        [req.query.id],
 //        function(err, result) {
 //            if(err){
@@ -437,7 +429,7 @@ app.get('/insertListing',function(req,res,next){
 //is rendered to facilitate edit of a single record. All records are displayed.
 //app.get('/editRecord',function(req, res, next){
 //    var context = {};
-//    pool.query('SELECT * FROM `workouts` WHERE id=?',
+//    mysql.pool.query('SELECT * FROM `workouts` WHERE id=?',
 //        [req.query.id],
 //        function(err, rows, fields){
 //            if(err){
@@ -467,7 +459,7 @@ app.get('/insertListing',function(req,res,next){
 //app.get('/editRecordReturn', function(req, res, next){
 //    var context = {};
 
-//    pool.query("SELECT * FROM `workouts` WHERE id=?",
+//    mysql.pool.query("SELECT * FROM `workouts` WHERE id=?",
  //       [req.query.id],
 //        function(err, result){
  //           if(err){
@@ -485,7 +477,7 @@ app.get('/insertListing',function(req,res,next){
 //                    req.query.unitCheck = "0";
  //               }
 
-//                pool.query('UPDATE `workouts` SET name=?, reps=?, weight=?, date=?, lbs=? WHERE id=?',  //Make a query to UPDATE and require either what the name is now or the updated name
+//                mysql.pool.query('UPDATE `workouts` SET name=?, reps=?, weight=?, date=?, lbs=? WHERE id=?',  //Make a query to UPDATE and require either what the name is now or the updated name
  //               [req.query.exercise || current.name,
  //               req.query.reps || current.reps,
  //               req.query.weight || current.weight,
@@ -498,7 +490,7 @@ app.get('/insertListing',function(req,res,next){
  //                       return;
   //                  }
 
- //                   pool.query('SELECT * FROM `workouts`', function(err, rows, fields){
+ //                   mysql.pool.query('SELECT * FROM `workouts`', function(err, rows, fields){
  //                       if(err){
  //                           next(err);
  //                           return;
