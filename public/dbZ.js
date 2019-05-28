@@ -12,7 +12,6 @@ document.getElementById("addZipButton").addEventListener("click", function(event
 	
     req.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
   
-    alert(`You entered: \nCode: ${name}`);
 
     req.addEventListener('load', function() {
   

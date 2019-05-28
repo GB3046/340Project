@@ -21,8 +21,6 @@ document.getElementById("addListingButton").addEventListener("click", function(e
 	
     req.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
   
-    alert(`You entered: \nAddress: ${address} \nCity: ${city} \nZipCode: ${zip} \nPropertyType: ${property} \nByOwner: ${byOwner}
-	\nDateListed: ${dateListed} \nListPrice: ${listPrice} \nDateSold: ${dateSold} \nSellPrice: ${sellPrice}`);
 
     req.addEventListener('load', function() {
   

@@ -14,7 +14,6 @@ document.getElementById("addCityButton").addEventListener("click", function (eve
 
     req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
-    alert(`You entered: \nName: ${name} \nState: ${state}`);
 
     req.addEventListener('load', function () {
 

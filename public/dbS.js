@@ -12,7 +12,6 @@ document.getElementById("addStateButton").addEventListener("click", function(eve
 	
     req.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
   
-    alert(`You entered: \nName: ${name}`);
 
     req.addEventListener('load', function() {
   

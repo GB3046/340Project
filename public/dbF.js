@@ -12,7 +12,6 @@ document.getElementById("addFeatureButton").addEventListener("click", function(e
 	
     req.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
   
-    alert(`You entered: \nName: ${name}`);
 
     req.addEventListener('load', function() {
   

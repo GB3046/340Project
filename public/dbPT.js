@@ -12,7 +12,6 @@ document.getElementById("addPropertyTypeButton").addEventListener("click", funct
 	
     req.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
   
-    alert(`You entered: \nName: ${name}`);
 
     req.addEventListener('load', function() {
   
