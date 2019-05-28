@@ -26,7 +26,9 @@ document.getElementById("addListingButton").addEventListener("click", function(e
 
     req.addEventListener('load', function() {
   
-        if(req.status >= 200 && req.status < 400) {
+        if (req.status >= 200 && req.status < 400) {
+            $('#addForm').modal('hide');
+
 
             //Response and id from server
             var response = JSON.parse(req.responseText);
@@ -76,14 +78,16 @@ document.getElementById("addListingButton").addEventListener("click", function(e
 			
 			//Adds Update button to table
 			var updateData = document.createElement('td');
-			
+            updateData.className = "actionCell";
+
 			var updateDataLink = document.createElement('a');
-			updateDataLink.setAttribute('href','/editRecord?id=' + id);
+			updateDataLink.setAttribute('href','/updateListing?id=' + id);
 			
 			var updateButton = document.createElement('input');    
 			updateButton.setAttribute('value','Update'); 
 			updateButton.setAttribute('type','button');
-			
+            updateButton.className = "btn btn-sm btn-primary";
+
 			updateDataLink.appendChild(updateButton);
 			
 			updateData.appendChild(updateDataLink);
@@ -92,13 +96,15 @@ document.getElementById("addListingButton").addEventListener("click", function(e
 
 			//Adds Delete button to table
 			var deleteCell = document.createElement('td');   
-			
+            deleteCell.className = "actionCell";
+
 			var deleteButton = document.createElement('input');    
 			deleteButton.setAttribute('type','button');
 			deleteButton.setAttribute('name','delete');             
 			deleteButton.setAttribute('value','Delete');
 			deleteButton.setAttribute('onClick', 'deleteData("dataTable",' + id +')');
-			
+            deleteButton.className = "btn btn-sm btn-primary";
+
 			var deleteHidden = document.createElement('input');             
 			deleteHidden.setAttribute('type','hidden');
 			deleteHidden.setAttribute('id', 'delete' + id);

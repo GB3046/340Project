@@ -10,6 +10,27 @@ app.set("port", 2743);
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
+function formatDate(date) {
+    if (!date || date == null) {
+        return '';
+    } else {
+        var d = new Date(date);
+        if (isNaN(d.getMonth())) {
+            return '';
+        } else {
+            month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();
+
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+
+            return [year, month, day].join('-');
+        }
+    }
+
+}
+
 //Provide access to static files (CSS & JS)
 app.use('/public', express.static('public'));
 
@@ -31,7 +52,10 @@ app.get('/listing', function(req, res, next) {
 
     var context = {};
 	
-    mysql.pool.query('SELECT * FROM Listing', function(err, rows, fields){
+    mysql.pool.query('SELECT Listing.Id, Listing.Address, City.Name as City, '+
+        'Listing.ZipCode, PropertyType.Name as PropertyType, Listing.ByOwner, ' +
+        'Listing.DateListed, Listing.ListPrice, Listing.DateSold, Listing.SellPrice ' +
+        'FROM Listing INNER JOIN City ON Listing.City = City.Id INNER JOIN PropertyType ON Listing.PropertyType = PropertyType.Id', function(err, rows, fields){
 		
 		if(err){
 		
@@ -50,17 +74,54 @@ app.get('/listing', function(req, res, next) {
                        'ZipCode': rows[row].ZipCode,
                        'PropertyType': rows[row].PropertyType,
                        'ByOwner': rows[row].ByOwner,
-					   'DateListed': rows[row].DateListed,
+                'DateListed': formatDate(rows[row].DateListed),
 					   'ListPrice': rows[row].ListPrice,
-					   'DateSold': rows[row].DateSold,
+                'DateSold': formatDate(rows[row].DateSold),
 					   'SellPrice': rows[row].SellPrice};
 					
 			params.push(addItem);
 		}
 	
-		context.results = params;
+        context.results = params;
 
-		res.render('listing', context);
+            mysql.pool.query('SELECT City.Id, City.Name, State.Name as State FROM City INNER JOIN State ON City.State = State.Id ORDER BY City.Name ASC', function (err, rows, fields) {
+
+                if (err) {
+                    next(err);
+                    console.log(err);
+                    return;
+                }
+
+                context.cities = rows;
+
+                mysql.pool.query('SELECT Code FROM ZipCode ORDER BY Code', function (err, rows, fields) {
+
+                    if (err) {
+                        next(err);
+                        console.log(err);
+                        return;
+                    }
+
+                    context.zips = rows;
+
+                    mysql.pool.query('SELECT Id, Name FROM PropertyType ORDER BY Name', function (err, rows, fields) {
+
+                        if (err) {
+                            next(err);
+                            console.log(err);
+                            return;
+                        }
+
+                        context.property = rows;
+
+                        res.render('listing', context);
+                    });
+
+                });
+
+            });
+
+
 	
 	})
 });
@@ -72,31 +133,47 @@ app.get('/listingFeature', function(req, res, next) {
     console.log("ListingFeature SELECT has been fired");
 
     var context = {};
-	
-    mysql.pool.query('SELECT * FROM `ListingFeature`', function(err, rows, fields){
-		
-    if(err){
-		
-        next(err);
-        console.log(err);
-        return;
-    }
-	
-    var params = [];
-	
-    for(var row in rows){
-		
-        var addItem = {'Listing': rows[row].Listing,
-					   'Feature': rows[row].Feature};
-						
-        params.push(addItem);
-    }
-	
-    context.results = params;
+    context.Listing = {
+        Id: [req.query.id]
+    };
+    mysql.pool.query('SELECT ListingFeature.Listing, Feature.Name as Feature FROM `ListingFeature` ' +
+        'INNER JOIN Feature on ListingFeature.Feature = Feature.Id WHERE ListingFeature.Listing=?', [req.query.id], function (err, rows, fields) {
 
-    res.render('listingFeature', context);
-	
-	})
+            if (err) {
+
+                next(err);
+                console.log(err);
+                return;
+            }
+
+            var params = [];
+
+            for (var row in rows) {
+
+                var addItem = {
+                    'Listing': rows[row].Listing,
+                    'Feature': rows[row].Feature
+                };
+
+                params.push(addItem);
+            }
+
+            context.results = params;
+            mysql.pool.query('SELECT Id, Name FROM Feature', function (err, rows, fields) {
+
+                if (err) {
+
+                    next(err);
+                    console.log(err);
+                    return;
+                }
+
+                context.features = rows;
+
+                res.render('listingFeature', context);
+
+            })
+        })
 });
 
 app.get('/property', function(req, res, next) {
@@ -316,6 +393,29 @@ app.get('/insertPropertyType',function(req,res,next){
     })
 });
 
+//Inserts a record into Listing-Feature using AJAX calls from the home page via script
+app.get('/insertListingFeature', function (req, res, next) {
+
+    console.log("Insert Listing-Feature handler has been fired");
+
+    var context = {};
+
+    mysql.pool.query("INSERT INTO `ListingFeature` (`Listing`, `Feature`) VALUES (?, ?)",
+        [req.query.Listing,
+            req.query.Feature],
+
+        function (err, result) {
+            if (err) {
+                next(err);
+                console.log(err);
+                return;
+            }
+
+            context.inserted = result.insertId;
+            res.send(JSON.stringify(context));
+        })
+});
+
 //Inserts a record into State using AJAX calls from the home page via script
 app.get('/insertState',function(req,res,next){
   
@@ -437,15 +537,60 @@ app.get('/insertListing',function(req,res,next){
 });
 
 
-//Edits a record from City using AJAX calls from the home page via script
-app.get('/editCity', function (req, res, next) {
+//Displays a State record in an edit form
+app.get('/updateState', function (req, res, next) {
 
     var context = {};
 
-    mysql.pool.query('SELECT * FROM City WHERE Id = ? LIMIT 1', [req.query.id], function (err, rows, fields) {
+    mysql.pool.query('SELECT Id, Name FROM State WHERE Id = ? LIMIT 1', [req.query.id], function (err, rows, fields) {
 
         if (err) {
+            next(err);
+            console.log(err);
+            return;
+        }
 
+        var thisItem = {
+            'Id': rows[0].Id,
+            'Name': rows[0].Name,
+        };
+
+        context.results = thisItem;
+        res.render('update_state', context);
+    })
+});
+
+//Displays a zip-code record in an edit form
+app.get('/updateZip', function (req, res, next) {
+
+    var context = {};
+
+    mysql.pool.query('SELECT Code FROM ZipCode WHERE Code = ? LIMIT 1', [req.query.id], function (err, rows, fields) {
+
+        if (err) {
+            next(err);
+            console.log(err);
+            return;
+        }
+
+        var thisItem = {
+            'Code': rows[0].Code,
+        };
+
+        context.results = thisItem;
+        res.render('update_zip', context);
+    })
+});
+
+
+//Displays a City record in an edit form with State options to select from
+app.get('/updateCity', function (req, res, next) {
+
+    var context = {};
+
+    mysql.pool.query('SELECT Id, Name, State FROM City WHERE Id = ? LIMIT 1', [req.query.id], function (err, rows, fields) {
+
+        if (err) {
             next(err);
             console.log(err);
             return;
@@ -487,23 +632,245 @@ app.get('/editCity', function (req, res, next) {
     })
 });
 
-app.put('/editCity/:id', function (req, res) {
-    console.log(req.body)
-    console.log(req.params.id)
+
+//Displays a Feature record in an edit form
+app.get('/updateFeature', function (req, res, next) {
+
+    var context = {};
+
+    mysql.pool.query('SELECT Id, Name FROM Feature WHERE Id = ? LIMIT 1', [req.query.id], function (err, rows, fields) {
+
+        if (err) {
+            next(err);
+            console.log(err);
+            return;
+        }
+
+        var thisItem = {
+            'Id': rows[0].Id,
+            'Name': rows[0].Name,
+        };
+
+        context.results = thisItem;
+        res.render('update_feature', context);
+    })
+});
+
+
+//Displays a property-type record in an edit form
+app.get('/updateProperty', function (req, res, next) {
+
+    var context = {};
+
+    mysql.pool.query('SELECT Id, Name FROM PropertyType WHERE Id = ? LIMIT 1', [req.query.id], function (err, rows, fields) {
+
+        if (err) {
+            next(err);
+            console.log(err);
+            return;
+        }
+
+        var thisItem = {
+            'Id': rows[0].Id,
+            'Name': rows[0].Name,
+        };
+
+        context.results = thisItem;
+        res.render('update_property', context);
+    })
+});
+
+//Displays a Listing record in an edit form with options to select from
+app.get('/updateListing', function (req, res, next) {
+
+    var context = {};
+
+    mysql.pool.query('SELECT Id, Address, City, ZipCode, PropertyType, ByOwner, DateListed, ListPrice, DateSold, SellPrice FROM Listing WHERE Id = ? LIMIT 1', [req.query.id], function (err, rows, fields) {
+
+        if (err) {
+            next(err);
+            console.log(err);
+            return;
+        }
+
+        var cities = [];
+
+        context.results = rows[0];
+
+        mysql.pool.query('SELECT City.Id, City.Name, State.Name as State FROM City INNER JOIN State ON City.State = State.Id ORDER BY City.Name ASC', function (err, rows, fields) {
+
+            if (err) {
+                next(err);
+                console.log(err);
+                return;
+            }
+
+            context.cities = rows;
+
+            mysql.pool.query('SELECT Code FROM ZipCode ORDER BY Code', function (err, rows, fields) {
+
+                if (err) {
+                    next(err);
+                    console.log(err);
+                    return;
+                }
+
+                context.zips = rows;
+
+                mysql.pool.query('SELECT Id, Name FROM PropertyType ORDER BY Name', function (err, rows, fields) {
+
+                    if (err) {
+                        next(err);
+                        console.log(err);
+                        return;
+                    }
+
+                    context.property = rows;
+
+                    res.render('update_listing', context);
+                });
+
+            });
+
+        });
+
+    })
+});
+
+
+
+app.put('/updateState/:id', function (req, res) {
+    console.log(req.body);
+    console.log(req.params.id);
+
+    var sql = "UPDATE State SET Name=? WHERE Id=?";
+    var inserts = [req.body.Name, req.params.id];
+    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        console.log(results);
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Updated Successfully'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
+
+app.put('/updateZip/:id', function (req, res) {
+    var sql = "UPDATE ZipCode SET Code=? WHERE Code=?";
+    var inserts = [req.body.Name, req.params.id];
+    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Updated Successfully'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
+
+app.put('/updateCity/:id', function (req, res) {
     var sql = "UPDATE City SET Name=?, State=? WHERE Id=?";
     var inserts = [req.body.Name, req.body.State, req.params.id];
     sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
         res.setHeader('Content-Type', 'application/json');
         if (error) {
             console.log(error)
-            res.write(JSON.stringify(error));
-            res.end();
+            res.end(JSON.stringify(error));
         } else {
+            var response = {
+                status: 200,
+                success: 'Updated Successfully'
+            }
             res.status(200);
-            res.end();
+            res.end(JSON.stringify(response));
         }
     });
 });
+
+app.put('/updateFeature/:id', function (req, res) {
+
+    var sql = "UPDATE Feature SET Name=? WHERE Id=?";
+    var inserts = [req.body.Name, req.params.id];
+    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        console.log(results);
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Updated Successfully'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
+
+app.put('/updateProperty/:id', function (req, res) {
+
+    var sql = "UPDATE PropertyType SET Name=? WHERE Id=?";
+    var inserts = [req.body.Name, req.params.id];
+    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        console.log(results);
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Updated Successfully'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
+
+app.put('/updateListing/:id', function (req, res) {
+    var sql = "UPDATE Listing SET Address=?, City=?, ZipCode=?, PropertyType=?, ByOwner=?, DateListed=?, ListPrice=?, DateSold=?, SellPrice=? WHERE Id=?";
+    var inserts = [
+        req.body.Address,
+        req.body.City,
+        req.body.ZipCode,
+        req.body.PropertyType,
+        req.body.ByOwner,
+        req.body.DateListed,
+        req.body.ListPrice,
+        req.body.DateSold,
+        req.body.SellPrice,
+        req.params.id];
+    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Updated Successfully'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
+
 
 //Deletes a record in the database using an id generated from the home page via script
 //app.get('/delete', function(req, res, next) {

@@ -1,4 +1,4 @@
-input.addRecord {
+/*input.addRecord {
     border: 1px solid grey;
     margin-top: 5px;
     margin-bottom: 10px;
@@ -8,10 +8,10 @@ input.addRecord {
 input.addRecordRadio {
     border: 1px solid grey;
     width: 70px;
-}
+}*/
 
 td, input {
-    width: 80px;
+    /*width: 80px;*/
 }
 
 td.tableButton {
@@ -21,5 +21,13 @@ td.tableButton {
 }
 
 td {
-    border: 1px solid grey;
+    /*border: 1px solid grey;*/
+}
+
+.actionCell{
+    text-align: center;
+}
+
+.pageTitle{
+    border-bottom: 1px solid lightgray;
 }

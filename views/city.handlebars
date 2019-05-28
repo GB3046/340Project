@@ -1,43 +1,75 @@
-<h1>City Entity</h1>
+<div class="container bd-content" style="padding: 3rem 1.5rem">
 
-<p>Use the form below to add a city to the database!</p>
+    <h3>Cities</h3>
 
-<form id="addCity">
-    <fieldset>
+    <div>
+        <button button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addForm">Add City</button>
+    </div>
 
-        <label for="Name">Name:</label><br>
-        <input class="addRecord" type="text" name="Name" id="Name"><br>
-        <label for="State">State:</label><br>
-        <select class="editRecord" name="State" id="State">
-            {{#each states}}
-            <option value="{{this.Id}}">{{this.Name}}</option>
-            {{/each}}
-        </select><br />
-        <button type="button" name="Submit" id="addCityButton">Submit</button>
-    </fieldset>
-</form><br>
+    <div id="addForm" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add City</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCity">
+                        <fieldset>
+                            <div class="form-group row">
+                                <label for="Name" class="col-sm-2 col-form-label">City Name</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control addRecord" name="Name" id="Name" value="{{results.Name}}">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="State" class="col-sm-2 col-form-label">State</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control addRecord" name="State" id="State">
+                                        {{#each states}}
+                                        <option value="{{this.Id}}">{{this.Name}}</option>
+                                        {{/each}}
+                                    </select>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" name="Submit" id="addCityButton">Add</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<p>The table below shows the records you have stored in the database.</p>
 
-<table id="cityTable">
-    <tr>
-        <th>Name</th>
-        <th>State</th>
-    </tr>
-    
-    {{#if results}}
+    <p>The table below shows the records you have stored in the database.</p>
+
+    <table id="cityTable" class="table">
+        <tr>
+            <th>City Name</th>
+            <th>State</th>
+            <th class="actionCell" colspan="2">Action</th>
+
+        </tr>
+
+        {{#if results}}
         {{#each results}}
-            <tr>
-                <td>{{this.Name}}</td>
-                <td>{{this.State}}</td>
-                <td><a href="/editCity?id={{this.Id}}"><input type="button" value="Update"></a></td>
-                <td>
-                    <input type="button" name="delete" value="Delete" onClick="deleteData('dataTable',{{this.City}})">
-                    <input type="hidden" id="delete{{this.City}}">
-                </td>
-            </tr>
+        <tr>
+            <td>{{this.Name}}</td>
+            <td>{{this.State}}</td>
+            <td class="actionCell"><a href="/updateCity?id={{this.Id}}"><input class="btn btn-primary btn-sm" type="button" value="Update"></a></td>
+            <td class="actionCell">
+                <input type="button" class="btn btn-secondary btn-sm" name="delete" value="Delete" onClick="deleteData('dataTable',{{this.City}})">
+                <input type="hidden" id="delete{{this.City}}">
+            </td>
+        </tr>
         {{/each}}
-    {{/if}}
-</table>
+        {{/if}}
+    </table>
+</div>
 
 <script src="public/dbC.js"></script>
