@@ -1,0 +1,18 @@
+<div class="container bd-content" style="padding: 3rem 1.5rem">
+
+    <h3 class="pageTitle">Update Feature</h3>
+
+    <form id="updateFeature">
+        <fieldset>
+            <div class="form-group row">
+                <label for="Name" class="col-sm-4 col-form-label">Feature</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control addRecord" name="Name" id="Name" value="{{results.Name}}">
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" name="Submit" id="editFeatureButton" onclick="updateFeature({{results.Id}})">Update</button>
+
+        </fieldset>
+    </form>
+    </div>
+    <script src="public/db_update.js"></script>

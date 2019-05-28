@@ -1,0 +1,18 @@
+<div class="container bd-content" style="padding: 3rem 1.5rem">
+    
+    <h3 class="pageTitle">Update Zip-Code</h3>
+
+    <form id="updateZip">
+        <fieldset>
+            <div class="form-group row">
+                <label for="Code" class="col-sm-4 col-form-label">Zip-Code</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control addRecord" name="Code" id="Code" value="{{results.Code}}">
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" name="Submit" id="editZipButton" onclick="updateZip({{results.Code}})">Update</button>
+
+        </fieldset>
+    </form>
+    </div>
+    <script src="public/db_update.js"></script>

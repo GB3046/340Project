@@ -1,0 +1,136 @@
+<div style="padding: 3rem 1.5rem">
+
+    <h3>Lisitings</h3>
+
+    <div>
+        <button button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addForm">Add Listing</button>
+    </div>
+
+    <div id="addForm" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Listing</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addListing">
+                        <fieldset>
+                            <div class="form-group row">
+                                <label for="Address" class="col-sm-2 col-form-label">Address</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control addRecord" name="Address" id="Address">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="City" class="col-sm-2 col-form-label">City</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control addRecord" name="City" id="City">
+                                        {{#each cities}}
+                                        <option value="{{this.Id}}">{{this.Name}}</option>
+                                        {{/each}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="ZipCode" class="col-sm-2 col-form-label">Zip-Code</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control addRecord" name="ZipCode" id="ZipCode">
+                                        {{#each zips}}
+                                        <option value="{{this.Code}}">{{this.Code}}</option>
+                                        {{/each}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="PropertyType" class="col-sm-2 col-form-label">Property-Type</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control addRecord" name="PropertyType" id="PropertyType">
+                                        {{#each property}}
+                                        <option value="{{this.Id}}">{{this.Name}}</option>
+                                        {{/each}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="ByOwner" class="col-sm-2 col-form-label">By Owner</label>
+                                <div class="col-sm-10">
+                                    <input type="checkbox" value="1" class="form-control addRecord" name="ByOwner" id="ByOwner">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="DateListed" class="col-sm-2 col-form-label">Date Listed</label>
+                                <div class="col-sm-10">
+                                    <input type="date" class="form-control addRecord" name="DateListed" id="DateListed">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="ListPrice" class="col-sm-2 col-form-label">List Price</label>
+                                <div class="col-sm-10">
+                                    <input type="number" class="form-control addRecord" name="ListPrice" id="ListPrice">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="DateSold" class="col-sm-2 col-form-label">Date Sold</label>
+                                <div class="col-sm-10">
+                                    <input type="date" class="form-control addRecord" name="DateSold" id="DateSold">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="SellPrice" class="col-sm-2 col-form-label">Sell Price</label>
+                                <div class="col-sm-10">
+                                    <input type="number" class="form-control addRecord" name="ListPrice" id="SellPrice">
+                                </div>
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" name="Submit" id="addListingButton">Add</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table id="listingTable" class="table">
+        <tr>
+            <th>Address</th>
+            <th>City</th>
+            <th>Zip-Code</th>
+            <th>Property-Type</th>
+            <th>By-Owner</th>
+            <th>Date-Listed</th>
+            <th>List-Price</th>
+            <th>Date-Sold</th>
+            <th>Sell-Price</th>
+            <th class="actionCell" colspan="3">Action</th>
+        </tr>
+
+        {{#if results}}
+        {{#each results}}
+        <tr>
+            <td>{{this.Address}}</td>
+            <td>{{this.City}}</td>
+            <td>{{this.ZipCode}}</td>
+            <td>{{this.PropertyType}}</td>
+            <td>{{this.ByOwner}}</td>
+            <td>{{this.DateListed}}</td>
+            <td>{{this.ListPrice}}</td>
+            <td>{{this.DateSold}}</td>
+            <td>{{this.SellPrice}}</td>
+            <td class="actionCell"><a href="/listingFeature?id={{this.Id}}"><input class="btn btn-primary btn-sm" type="button" value="View Features"></a></td>
+            <td class="actionCell"><a href="/updateListing?id={{this.Id}}"><input class="btn btn-primary btn-sm" type="button" value="Update"></a></td>
+            <td class="actionCell">
+                <input type="button" class="btn btn-secondary btn-sm" name="delete" value="Delete" onClick="deleteData('listingTable',{{this.Id}})">
+                <input type="hidden" id="delete{{this.Id}}">
+            </td>
+        </tr>
+        {{/each}}
+        {{/if}}
+    </table>
+    </div>
+
+    <script src="public/dbL.js"></script>

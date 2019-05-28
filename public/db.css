@@ -1,0 +1,33 @@
+/*input.addRecord {
+    border: 1px solid grey;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    width: 150px;
+}
+
+input.addRecordRadio {
+    border: 1px solid grey;
+    width: 70px;
+}*/
+
+td, input {
+    /*width: 80px;*/
+}
+
+td.tableButton {
+    border: none;
+    margin: 1px;
+    width: 50px;
+}
+
+td {
+    /*border: 1px solid grey;*/
+}
+
+.actionCell{
+    text-align: center;
+}
+
+.pageTitle{
+    border-bottom: 1px solid lightgray;
+}

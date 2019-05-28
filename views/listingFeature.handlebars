@@ -1,0 +1,63 @@
+<div class="container bd-content" style="padding: 3rem 1.5rem">
+
+    <h3>Listing Features</h3>
+
+    <div>
+        <button button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addForm">Add Feature to Listing</button>
+    </div>
+
+    <div id="addForm" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Feature to Listing</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addListingFeature">
+                        <fieldset>
+                            <div class="form-group row">
+                                <label for="State" class="col-sm-2 col-form-label">Feature</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control addRecord" name="Feature" id="Feature">
+                                        {{#each features}}
+                                        <option value="{{this.Id}}">{{this.Name}}</option>
+                                        {{/each}}
+                                    </select>
+                                </div>
+                                <input type="hidden" name="Listing" id="Listing" value="{{Listing.Id}}" />
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" name="Submit" id="addListingFeatureButton">Add</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table id="listingFeatureTable" class="table">
+        <tr>
+            <th>Features</th>
+            <th class="actionCell">Action</th>
+        </tr>
+
+        {{#if results}}
+        {{#each results}}
+        <tr>
+            <td>{{this.Feature}}</td>
+            <td class="actionCell">
+                <input type="button" class="btn btn-secondary btn-sm" name="delete" value="Delete" onClick="deleteData('listingTable',{{this.Id}})">
+                <input type="hidden" id="delete{{this.Id}}">
+            </td>
+        </tr>
+        {{/each}}
+        {{/if}}
+    </table>
+</div>
+<script src="public/dbLF.js"></script>
+
