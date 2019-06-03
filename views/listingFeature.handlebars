@@ -48,11 +48,10 @@
 
         {{#if results}}
         {{#each results}}
-        <tr>
-            <td>{{this.Feature}}</td>
+        <tr id="row-{{this.Listing}}-{{this.Feature}}">
+            <td>{{this.FeatureName}}</td>
             <td class="actionCell">
-                <input type="button" class="btn btn-secondary btn-sm" name="delete" value="Delete" onClick="deleteData('listingTable',{{this.Id}})">
-                <input type="hidden" id="delete{{this.Id}}">
+                <input type="button" class="btn btn-secondary btn-sm" name="delete" value="Delete" onClick="deleteListingFeature('listingFeatureTable',{{this.Listing}}, {{this.Feature}})">
             </td>
         </tr>
         {{/each}}

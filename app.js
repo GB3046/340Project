@@ -10,6 +10,23 @@ app.set("port", 2743);
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
+//function to format a number into formatted usd string: https://stackoverflow.com/questions/149055/how-can-i-format-numbers-as-currency-string-in-javascript
+function formatMoney(n) {
+    if (!n || n == null) {
+        return '';
+    } else {
+        var c = 0,
+            d = ".",
+            t = ",",
+            s = n < 0 ? "-$" : "$",
+            i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c))),
+            j = (j = i.length) > 3 ? j % 3 : 0;
+
+        return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+    }
+
+};
+
 function formatDate(date) {
     if (!date || date == null) {
         return '';
@@ -68,16 +85,18 @@ app.get('/listing', function(req, res, next) {
 	
 		for(var row in rows){
 		//console.log(rows[row]);
-			var addItem = {'Id': rows[row].Id,
-					   'Address': rows[row].Address,
-                       'City': rows[row].City,
-                       'ZipCode': rows[row].ZipCode,
-                       'PropertyType': rows[row].PropertyType,
-                       'ByOwner': rows[row].ByOwner,
+            var addItem = {
+                'Id': rows[row].Id,
+                'Address': rows[row].Address,
+                'City': rows[row].City,
+                'ZipCode': rows[row].ZipCode,
+                'PropertyType': rows[row].PropertyType,
+                'ByOwner': (rows[row].ByOwner? "Yes" : ""),
                 'DateListed': formatDate(rows[row].DateListed),
-					   'ListPrice': rows[row].ListPrice,
+                'ListPrice': formatMoney(rows[row].ListPrice),
                 'DateSold': formatDate(rows[row].DateSold),
-					   'SellPrice': rows[row].SellPrice};
+                'SellPrice': formatMoney(rows[row].SellPrice)
+            };
 					
 			params.push(addItem);
 		}
@@ -128,15 +147,11 @@ app.get('/listing', function(req, res, next) {
 
 app.get('/listingFeature', function(req, res, next) {
 
-    console.log("listingFeature handler has been fired.");
-
-    console.log("ListingFeature SELECT has been fired");
-
     var context = {};
     context.Listing = {
         Id: [req.query.id]
     };
-    mysql.pool.query('SELECT ListingFeature.Listing, Feature.Name as Feature FROM `ListingFeature` ' +
+    mysql.pool.query('SELECT ListingFeature.Listing, ListingFeature.Feature, Feature.Name as FeatureName FROM `ListingFeature` ' +
         'INNER JOIN Feature on ListingFeature.Feature = Feature.Id WHERE ListingFeature.Listing=?', [req.query.id], function (err, rows, fields) {
 
             if (err) {
@@ -152,7 +167,8 @@ app.get('/listingFeature', function(req, res, next) {
 
                 var addItem = {
                     'Listing': rows[row].Listing,
-                    'Feature': rows[row].Feature
+                    'Feature': rows[row].Feature,
+                    'FeatureName': rows[row].FeatureName,
                 };
 
                 params.push(addItem);
@@ -396,7 +412,6 @@ app.get('/insertPropertyType',function(req,res,next){
 //Inserts a record into Listing-Feature using AJAX calls from the home page via script
 app.get('/insertListingFeature', function (req, res, next) {
 
-    console.log("Insert Listing-Feature handler has been fired");
 
     var context = {};
 
@@ -411,7 +426,8 @@ app.get('/insertListingFeature', function (req, res, next) {
                 return;
             }
 
-            context.inserted = result.insertId;
+            context.insertedListing = req.query.Listing;
+            context.insertedFeature = req.query.Feature;
             res.send(JSON.stringify(context));
         })
 });
@@ -455,7 +471,7 @@ app.get('/insertZip',function(req,res,next){
               return;
             }
 			
-            context.inserted = result.insertId;
+            context.inserted = req.query.Code;
             res.send(JSON.stringify(context));
     })
 });
@@ -739,6 +755,7 @@ app.get('/updateListing', function (req, res, next) {
 
 
 
+//updates a state record with values submitted by the user.
 app.put('/updateState/:id', function (req, res) {
     console.log(req.body);
     console.log(req.params.id);
@@ -762,9 +779,12 @@ app.put('/updateState/:id', function (req, res) {
     });
 });
 
+
+//updates a zip code record with values submitted by the user.
 app.put('/updateZip/:id', function (req, res) {
     var sql = "UPDATE ZipCode SET Code=? WHERE Code=?";
-    var inserts = [req.body.Name, req.params.id];
+    console.log("updating zip - " + req.params.id);
+    var inserts = [req.params.code, req.params.id];
     sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
         res.setHeader('Content-Type', 'application/json');
         if (error) {
@@ -781,6 +801,8 @@ app.put('/updateZip/:id', function (req, res) {
     });
 });
 
+
+//updates a City record with values submitted by the user.
 app.put('/updateCity/:id', function (req, res) {
     var sql = "UPDATE City SET Name=?, State=? WHERE Id=?";
     var inserts = [req.body.Name, req.body.State, req.params.id];
@@ -800,6 +822,8 @@ app.put('/updateCity/:id', function (req, res) {
     });
 });
 
+
+//updates a Feature record with values submitted by the user.
 app.put('/updateFeature/:id', function (req, res) {
 
     var sql = "UPDATE Feature SET Name=? WHERE Id=?";
@@ -821,6 +845,8 @@ app.put('/updateFeature/:id', function (req, res) {
     });
 });
 
+
+//updates a Property-Type record with values submitted by the user.
 app.put('/updateProperty/:id', function (req, res) {
 
     var sql = "UPDATE PropertyType SET Name=? WHERE Id=?";
@@ -842,6 +868,10 @@ app.put('/updateProperty/:id', function (req, res) {
     });
 });
 
+
+
+
+//updates a listing record with values submitted by the user.
 app.put('/updateListing/:id', function (req, res) {
     var sql = "UPDATE Listing SET Address=?, City=?, ZipCode=?, PropertyType=?, ByOwner=?, DateListed=?, ListPrice=?, DateSold=?, SellPrice=? WHERE Id=?";
     var inserts = [
@@ -850,11 +880,12 @@ app.put('/updateListing/:id', function (req, res) {
         req.body.ZipCode,
         req.body.PropertyType,
         req.body.ByOwner,
-        req.body.DateListed,
-        req.body.ListPrice,
-        req.body.DateSold,
-        req.body.SellPrice,
+        (req.body.DateListed == "" ? null : req.body.DateListed),
+        (req.body.ListPrice == "" ? null : req.body.ListPrice),
+        (req.body.DateSold == "" ? null : req.body.DateSold),
+        (req.body.SellPrice == "" ? null : req.body.SellPrice),
         req.params.id];
+
     sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
         res.setHeader('Content-Type', 'application/json');
         if (error) {
@@ -872,115 +903,136 @@ app.put('/updateListing/:id', function (req, res) {
 });
 
 
-//Deletes a record in the database using an id generated from the home page via script
-//app.get('/delete', function(req, res, next) {
-//    var context = {};
-//    mysql.pool.query("DELETE FROM `workouts` WHERE id = ?",
-//        [req.query.id],
-//        function(err, result) {
-//            if(err){
-//                next(err);
-//                console.log(err);
-//                return;
-//            }
-//        });
-//});
+// deletes the Property-Type belonging to the passed ID
+app.delete('/deleteState/:id', function (req, res) {
+    mysql.pool.query("DELETE FROM State WHERE Id=?", [req.params.id], function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Updated Successfully'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
 
-//Handler gets called when user selects edit from the home page. A separate view with form
-//is rendered to facilitate edit of a single record. All records are displayed.
-//app.get('/editRecord',function(req, res, next){
-//    var context = {};
-//    mysql.pool.query('SELECT * FROM `workouts` WHERE id=?',
-//        [req.query.id],
-//        function(err, rows, fields){
-//            if(err){
-//                next(err);
-//                return;
-//            }
-//            var param = [];
+// deletes the Zip-Code belonging to the passed code
+app.delete('/deleteZip/:id', function (req, res) {
+    mysql.pool.query("DELETE FROM ZipCode WHERE Code=?", [req.params.id], function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Updated Successfully'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
 
- //           for(var row in rows){
-//                var addItem = {'name': rows[row].name,
-//                            'reps': rows[row].reps,
-//                            'weight': rows[row].weight,
-//                            'date':rows[row].date,
-//                            'lbs':rows[row].lbs,
-//                            'id':rows[row].id};
+// deletes the City belonging to the passed Id
+app.delete('/deleteCity/:id', function (req, res) {
+    mysql.pool.query("DELETE FROM City WHERE Id=?", [req.params.id], function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Delete Successful'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
 
- //               param.push(addItem);
- //           }
 
- //       context.results = param[0];
-//        res.render('editRecord', context);
-//    });
-//});
+// deletes the Feature belonging to the passed Id
+app.delete('/deleteFeature/:id', function (req, res) {
+    mysql.pool.query("DELETE FROM Feature WHERE Id=?", [req.params.id], function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Delete Successful'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
 
-//Selects a single record by 'id' and updates the field(s) with user entered value(s). If no value
-//is provided, the existing value is used.
-//app.get('/editRecordReturn', function(req, res, next){
-//    var context = {};
 
-//    mysql.pool.query("SELECT * FROM `workouts` WHERE id=?",
- //       [req.query.id],
-//        function(err, result){
- //           if(err){
-//                next(err);
-//                return;
-//            }
- //           if(result.length == 1){
- //               var current = result[0];
+// deletes the Property-Type belonging to the passed ID
+app.delete('/deleteProperty/:id', function (req, res) {
+    mysql.pool.query("DELETE FROM PropertyType WHERE Id=?", [req.params.id], function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Delete Successful'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
 
-                
-//                if(req.query.unitCheck === "on"){
-//                    req.query.unitCheck = "1";
-//               }
- //               else{
-//                    req.query.unitCheck = "0";
- //               }
 
-//                mysql.pool.query('UPDATE `workouts` SET name=?, reps=?, weight=?, date=?, lbs=? WHERE id=?',  //Make a query to UPDATE and require either what the name is now or the updated name
- //               [req.query.exercise || current.name,
- //               req.query.reps || current.reps,
- //               req.query.weight || current.weight,
- //               req.query.date || current.date,
- //               req.query.unitCheck,
- //               req.query.id],
- //               function(err, result){
- //                   if(err){
- //                       next(err);
- //                       return;
-  //                  }
+// deletes the Listing belonging to the passed ID
+app.delete('/deleteListing/:id', function (req, res) {
+    mysql.pool.query("DELETE FROM Listing WHERE Id=?", [req.params.id], function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Delete Successful'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
 
- //                   mysql.pool.query('SELECT * FROM `workouts`', function(err, rows, fields){
- //                       if(err){
- //                           next(err);
- //                           return;
- //                       }
- //                       var param = [];
 
-  //                      for(var row in rows){
-  //                          var addItem = {'name': rows[row].name,
- //                           'reps': rows[row].reps,
- //                           'weight': rows[row].weight,
- //                           'date':rows[row].date,
- //                           'id':rows[row].id};
+// deletes the Listing-Feature with the passed listing id and feature id
+app.delete('/deleteListingFeature/:id', function (req, res) {
+    mysql.pool.query("DELETE FROM ListingFeature WHERE Listing=? and Feature=?", [req.body.lid, req.body.fid], function (error, results, fields) {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+            console.log(error)
+            res.end(JSON.stringify(error));
+        } else {
+            var response = {
+                status: 200,
+                success: 'Delete Successful'
+            }
+            res.status(200);
+            res.end(JSON.stringify(response));
+        }
+    });
+});
 
-  //                          if(rows[row].lbs){
-  //                              addItem.lbs = "lbs";
-  //                          }
-  //                          else{
-  //                              addItem.lbs = "kg";
-  //                          }
-  //                          param.push(addItem);
-  //                      }
-
-   //                     context.results = param;
-   //                     res.render('home', context);
-    //                });
-    //            });
-   //         }
-   // });
-//  });
 
 app.use(function(req, res){                
 	res.status(404);

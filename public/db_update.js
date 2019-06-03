@@ -51,16 +51,16 @@ function updateState(id) {
 
 
 //submits a form with updated Zip-Code
-function updateZip(id) {
-    $.ajax({
-        url: '/updateZip/' + id,
-        type: 'PUT',
-        data: $('#updateZip').serialize(),
-        success: function (result) {
-            window.location.href = "/zip";
-        }
-    })
-};
+//function updateZip(id) {
+//    $.ajax({
+//        url: '/updateZip/' + id,
+//        type: 'PUT',
+//        data: $('#updateZip').serialize(),
+//        success: function (result) {
+//            window.location.href = "/zip";
+//        }
+//    })
+//};
 
 //submits a form with updated feature
 function updateFeature(id) {
@@ -121,3 +121,4 @@ function updateListingFeature(id) {
         }
     })
 };
+
