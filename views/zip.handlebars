@@ -39,16 +39,18 @@
     <table id="zipTable" class="table">
         <tr>
             <th>Code</th>
-            <th class="actionCell" colspan="2">Action</th>
+            <th class="actionCell">Action</th>
+
+            <!--<th class="actionCell" colspan="2">Action</th>-->
         </tr>
 
         {{#if results}}
         {{#each results}}
-        <tr>
+        <tr id="row-{{this.Code}}">
             <td>{{this.Code}}</td>
-            <td class="actionCell"><a href="/updateZip?id={{this.Code}}"><input class="btn btn-primary btn-sm" type="button" value="Update"></a></td>
+            <!--<td class="actionCell"><a href="/updateZip?id={{this.Code}}"><input class="btn btn-primary btn-sm" type="button" value="Update"></a></td>-->
             <td class="actionCell">
-                <input type="button" class="btn btn-secondary btn-sm" name="delete" value="Delete" onClick="deleteData('dataTable',{{this.Code}})">
+                <input type="button" class="btn btn-secondary btn-sm" name="delete" value="Delete" onClick="deleteZip('zipTable',{{this.Code}})">
                 <input type="hidden" id="delete{{this.Code}}">
             </td>
         </tr>

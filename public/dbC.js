@@ -29,6 +29,7 @@ document.getElementById("addCityButton").addEventListener("click", function (eve
             var table = document.getElementById("cityTable");
 
             var row = table.insertRow(-1);
+            row.id = "row-" + id;
 
             //Populates table based on user submitted values for each field in the form
             var name = document.createElement('td');
@@ -66,16 +67,10 @@ document.getElementById("addCityButton").addEventListener("click", function (eve
             deleteButton.setAttribute('type', 'button');
             deleteButton.setAttribute('name', 'delete');
             deleteButton.setAttribute('value', 'Delete');
-            deleteButton.setAttribute('onClick', 'deleteData("dataTable",' + id + ')');
+            deleteButton.setAttribute('onClick', 'deleteCity("cityTable",' + id + ')');
             deleteButton.className = "btn btn-sm btn-secondary";
 
-            var deleteHidden = document.createElement('input');
-            deleteHidden.setAttribute('type', 'hidden');
-            deleteHidden.setAttribute('id', 'delete' + id);
-
             deleteCell.appendChild(deleteButton);
-            deleteCell.appendChild(deleteHidden);
-
             row.appendChild(deleteCell);
 
         } else {
@@ -88,39 +83,17 @@ document.getElementById("addCityButton").addEventListener("click", function (eve
 });
 
 
-
-function deleteData(tableId, id){                               
-    var deleteItem = "delete" + id;                             	
-	var table = document.getElementById("exerciseTable");       
-	var numRows = table.rows.length;
-
-	
-	for(var i = 1; i < numRows; i++){                          
-		var row = table.rows[i];
-		var findData = row.getElementsByTagName("td");		  
-		var erase = findData[findData.length -1];		        
-		if(erase.children[1].id === deleteItem){              
-			table.deleteRow(i);
-		}
-
-	}
-
-	var req = new XMLHttpRequest();
-	
-
-	req.open("GET", "/delete?id=" + id, true);             
-
-	req.addEventListener("load",function(){
-		if(req.status >= 200 && req.status < 400){        
-	    	console.log('delete was successful');
-		} else {
-		    console.log('error');
-		}
-	});
-
-	req.send("/delete?id=" + id);                          
-
+//submits a delete request for the city with the passed id.
+function deleteCity(tableId, id) {
+    $.ajax({
+        url: '/deleteCity/' + id,
+        type: 'DELETE',
+        success: function (result) {
+            $("#" + tableId).find("#row-" + id).remove();
+            console.log("Deleted ID - " + id);
+        },
+        error: function (result) {
+            console.log(result);
+        }
+    })
 };
-
-
-

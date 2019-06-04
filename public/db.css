@@ -31,3 +31,14 @@ td {
 .pageTitle{
     border-bottom: 1px solid lightgray;
 }
+
+#listingTable th:nth-child(6),
+#listingTable td:nth-child(6),
+#listingTable th:nth-child(7),
+#listingTable td:nth-child(7),
+#listingTable th:nth-child(8),
+#listingTable td:nth-child(8),
+#listingTable th:nth-child(9),
+#listingTable td:nth-child(9) {
+    text-align: right;
+} 

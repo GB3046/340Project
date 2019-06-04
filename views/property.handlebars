@@ -44,12 +44,11 @@
 
         {{#if results}}
         {{#each results}}
-        <tr>
+        <tr id="row-{{this.Id}}">
             <td>{{this.Name}}</td>
             <td class="actionCell"><a href="/updateProperty?id={{this.Id}}"><input class="btn btn-primary btn-sm" type="button" value="Update"></a></td>
             <td class="actionCell">
-                <input type="button" class="btn btn-secondary btn-sm" name="delete" value="Delete" onClick="deleteData('propertyTypeTable',{{this.Id}})">
-                <input type="hidden" id="delete{{this.Id}}">
+                <input type="button" class="btn btn-secondary btn-sm" name="delete" value="Delete" onClick="deleteProperty('propertyTypeTable',{{this.Id}})">
             </td>
         </tr>
         {{/each}}
