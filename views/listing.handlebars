@@ -96,40 +96,47 @@
     </div>
 
     <table id="listingTable" class="table">
-        <tr>
-            <th>Address</th>
-            <th>City</th>
-            <th>Zip-Code</th>
-            <th>Property-Type</th>
-            <th>For Sale By Owner</th>
-            <th>Date Listed</th>
-            <th>List Price</th>
-            <th>Date Sold</th>
-            <th>Sell Price</th>
-            <th class="actionCell" colspan="3">Action</th>
-        </tr>
+        <thead>
+            <tr>
+                <th>Address</th>
+                <th>City</th>
+                <th>Zip-Code</th>
+                <th>Property-Type</th>
+                <th>For Sale By Owner</th>
+                <th>Date Listed</th>
+                <th>List Price</th>
+                <th>Date Sold</th>
+                <th>Sell Price</th>
+                <th class="actionCell"></th>
+                <th class="actionCell"></th>
+                <th class="actionCell"></th>
 
-        {{#if results}}
-        {{#each results}}
-        <tr id="row-{{this.Id}}">
-            <td>{{this.Address}}</td>
-            <td>{{this.City}}</td>
-            <td>{{this.ZipCode}}</td>
-            <td>{{this.PropertyType}}</td>
-            <td>{{this.ByOwner}}</td>
-            <td>{{this.DateListed}}</td>
-            <td>{{this.ListPrice}}</td>
-            <td>{{this.DateSold}}</td>
-            <td>{{this.SellPrice}}</td>
-            <td class="actionCell"><a href="/listingFeature?id={{this.Id}}"><input class="btn btn-primary btn-sm" type="button" value="View Features"></a></td>
-            <td class="actionCell"><a href="/updateListing?id={{this.Id}}"><input class="btn btn-primary btn-sm" type="button" value="Update"></a></td>
-            <td class="actionCell">
-                <input type="button" class="btn btn-secondary btn-sm" name="delete" value="Delete" onClick="deleteListing('listingTable',{{this.Id}})">
-            </td>
-        </tr>
-        {{/each}}
-        {{/if}}
+            </tr>
+        </thead>
+        <tbody>
+            {{#if results}}
+            {{#each results}}
+            <tr id="row-{{this.Id}}">
+                <td>{{this.Address}}</td>
+                <td>{{this.City}}</td>
+                <td>{{this.ZipCode}}</td>
+                <td>{{this.PropertyType}}</td>
+                <td>{{this.ByOwner}}</td>
+                <td>{{this.DateListed}}</td>
+                <td>{{this.ListPrice}}</td>
+                <td>{{this.DateSold}}</td>
+                <td>{{this.SellPrice}}</td>
+                <td class="actionCell"><a href="/listingFeature?id={{this.Id}}"><input class="btn btn-primary btn-sm" type="button" value="View Features"></a></td>
+                <td class="actionCell"><a href="/updateListing?id={{this.Id}}"><input class="btn btn-primary btn-sm" type="button" value="Update"></a></td>
+                <td class="actionCell">
+                    <input type="button" class="btn btn-secondary btn-sm" name="delete" value="Delete" onClick="deleteListing('listingTable',{{this.Id}})">
+                </td>
+            </tr>
+            {{/each}}
+            {{/if}}
+        </tbody>
     </table>
-    </div>
+</div>
 
-    <script src="public/dbL.js"></script>
+<script src="public/db_update.js"></script>
+

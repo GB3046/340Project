@@ -42,6 +42,29 @@ function formatDate(date) {
             if (month.length < 2) month = '0' + month;
             if (day.length < 2) day = '0' + day;
 
+            return [month, day, year].join('/');
+        }
+    }
+
+}
+
+
+//format date string for a date input
+function formatDate_Input(date) {
+    if (!date || date == null) {
+        return '';
+    } else {
+        var d = new Date(date);
+        if (isNaN(d.getMonth())) {
+            return '';
+        } else {
+            month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();
+
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+
             return [year, month, day].join('-');
         }
     }
@@ -53,19 +76,12 @@ app.use('/public', express.static('public'));
 
 //Renders index.html
 app.get('/', function(req, res, next) {
-
-    console.log("index handler has been fired.");
-
     var context = {};
 
     res.render('index', context);
 });
 
 app.get('/listing', function(req, res, next) {
-
-    console.log("listing handler has been fired.");
-
-    console.log("Listing SELECT has been fired");
 
     var context = {};
 	
@@ -75,7 +91,6 @@ app.get('/listing', function(req, res, next) {
         'FROM Listing INNER JOIN City ON Listing.City = City.Id INNER JOIN PropertyType ON Listing.PropertyType = PropertyType.Id', function(err, rows, fields){
 		
 		if(err){
-		
 			(err);
 			console.log(err);
 			return;
@@ -84,7 +99,6 @@ app.get('/listing', function(req, res, next) {
 		var params = [];
 	
 		for(var row in rows){
-		//console.log(rows[row]);
             var addItem = {
                 'Id': rows[row].Id,
                 'Address': rows[row].Address,
@@ -139,9 +153,6 @@ app.get('/listing', function(req, res, next) {
                 });
 
             });
-
-
-	
 	})
 });
 
@@ -194,10 +205,6 @@ app.get('/listingFeature', function(req, res, next) {
 
 app.get('/property', function(req, res, next) {
 
-    console.log("property handler has been fired.");
-	
-	console.log("property-type SELECT has been fired");
-
     var context = {};
 	
     mysql.pool.query('SELECT * FROM `PropertyType`', function(err, rows, fields){
@@ -227,10 +234,6 @@ app.get('/property', function(req, res, next) {
 });
 
 app.get('/state', function(req, res, next) {
-
-    console.log("state handler has been fired.");
-
-    console.log("state SELECT has been fired");
 
     var context = {};
 	
@@ -262,10 +265,6 @@ app.get('/state', function(req, res, next) {
 
 app.get('/zip', function(req, res, next) {
 
-    console.log("zip handler has been fired.");
-
-    console.log("zip-code SELECT has been fired");
-
     var context = {};
 	
     mysql.pool.query('SELECT * FROM `ZipCode`', function(err, rows, fields){
@@ -294,10 +293,6 @@ app.get('/zip', function(req, res, next) {
 });
 
 app.get('/city', function(req, res, next) {
-
-    console.log("city handler has been fired.");
-
-    console.log("city SELECT has been fired");
 
     var context = {};
 	
@@ -355,10 +350,6 @@ app.get('/city', function(req, res, next) {
 
 app.get('/feature', function(req, res, next) {
 
-    console.log("feature handler has been fired.");
-
-    console.log("feature SELECT has been fired");
-
     var context = {};
 	
     mysql.pool.query('SELECT * FROM Feature', function(err, rows, fields){
@@ -390,112 +381,169 @@ app.get('/feature', function(req, res, next) {
 //Inserts a record into Property-Type using AJAX calls from the home page via script
 app.get('/insertPropertyType',function(req,res,next){
   
-    console.log("Insert Property-Type handler has been fired");
-
     var context = {};
-    
-    mysql.pool.query("INSERT INTO `PropertyType` (`Name`) VALUES (?)",
-        [req.query.Name],
+    context.inserted = 0;
 
-        function(err, result){
-            if(err){
-              next(err);
-              console.log(err);
-              return;
-            }
-			
-            context.inserted = result.insertId;
+    mysql.pool.query('SELECT Id FROM PropertyType WHERE Name = ? LIMIT 1', [req.query.Name], function (err, rows, fields) {
+
+        if (err) {
+            context.msg = "An unexpected error has occurred";
             res.send(JSON.stringify(context));
+        } else if (rows.length > 0) {
+            //duplicate!
+            context.msg = "This property-type already exists.";
+            res.send(JSON.stringify(context));
+        } else {
+            mysql.pool.query("INSERT INTO `PropertyType` (`Name`) VALUES (?)", [req.query.Name],
+
+                function (err, result) {
+                    if (err) {
+                        context.msg = "An unexpected error has occurred";
+                    } else {
+                        context.inserted = result.insertId;
+                    }
+                    res.send(JSON.stringify(context));
+
+                })
+        }
+
     })
+    
+
 });
 
 //Inserts a record into Listing-Feature using AJAX calls from the home page via script
 app.get('/insertListingFeature', function (req, res, next) {
 
-
     var context = {};
+    context.insertedListing = 0;
+    context.insertedFeature = 0;
 
-    mysql.pool.query("INSERT INTO `ListingFeature` (`Listing`, `Feature`) VALUES (?, ?)",
-        [req.query.Listing,
-            req.query.Feature],
+    mysql.pool.query('SELECT Listing FROM ListingFeature WHERE Listing = ? and Feature = ? LIMIT 1', [req.query.Listing, req.query.Feature], function (err, rows, fields) {
 
-        function (err, result) {
-            if (err) {
-                next(err);
-                console.log(err);
-                return;
-            }
-
-            context.insertedListing = req.query.Listing;
-            context.insertedFeature = req.query.Feature;
+        if (err) {
+            context.msg = "An unexpected error has occurred";
             res.send(JSON.stringify(context));
-        })
+        } else if (rows.length > 0) {
+            //duplicate!
+            context.msg = "This feature has already been noted for this listing.";
+            res.send(JSON.stringify(context));
+        } else {
+            mysql.pool.query("INSERT INTO `ListingFeature` (`Listing`, `Feature`) VALUES (?, ?)", [req.query.Listing, req.query.Feature],
+
+                function (err, result) {
+                    if (err) {
+                        context.msg = "An unexpected error has occurred.";
+                    } else {
+                        context.insertedListing = req.query.Listing;
+                        context.insertedFeature = req.query.Feature;
+                    }
+
+                    res.send(JSON.stringify(context));
+                })
+        }
+    })
+
+
 });
 
 //Inserts a record into State using AJAX calls from the home page via script
 app.get('/insertState',function(req,res,next){
   
-    console.log("Insert State handler has been fired");
-
     var context = {};
-    
-    mysql.pool.query("INSERT INTO `State` (`Name`) VALUES (?)",
-        [req.query.Name],
+    context.inserted = 0;
 
-        function(err, result){
-            if(err){
-              next(err);
-              console.log(err);
-              return;
-            }
-			
-            context.inserted = result.insertId;
+    mysql.pool.query('SELECT Id FROM State WHERE Name = ? LIMIT 1', [req.query.Name], function (err, rows, fields) {
+
+        if (err) {
+            context.msg = "An unexpected error has occurred";
             res.send(JSON.stringify(context));
+        } else if (rows.length > 0) {
+            //duplicate!
+            context.msg = "This state already exists.";
+            res.send(JSON.stringify(context));
+        } else {
+
+            mysql.pool.query("INSERT INTO `State` (`Name`) VALUES (?)", [req.query.Name],
+
+                function (err, result) {
+                    if (err) {
+                        context.msg = "An unexpected error has occurred";
+                    } else {
+                        context.inserted = result.insertId;
+                    }
+
+                    res.send(JSON.stringify(context));
+                })
+        }
     })
+
+
 });
 
 //Inserts a record into Zip-Code using AJAX calls from the home page via script
 app.get('/insertZip',function(req,res,next){
   
-    console.log("Insert Zip-Code handler has been fired");
-
     var context = {};
-    
-    mysql.pool.query("INSERT INTO `ZipCode` (`Code`) VALUES (?)",
-        [req.query.Code],
+    context.inserted = "";
 
-        function(err, result){
-            if(err){
-              next(err);
-              console.log(err);
-              return;
-            }
-			
-            context.inserted = req.query.Code;
+    mysql.pool.query('SELECT Code FROM ZipCode WHERE Code = ? LIMIT 1', [req.query.Code], function (err, rows, fields) {
+
+        if (err) {
+            context.msg = "An unexpected error has occurred";
             res.send(JSON.stringify(context));
+        } else if (rows.length > 0) {
+            //duplicate!
+            context.msg = "This zip-code already exists.";
+            res.send(JSON.stringify(context));
+        } else {
+            mysql.pool.query("INSERT INTO `ZipCode` (`Code`) VALUES (?)",
+                [req.query.Code],
+
+                function (err, result) {
+                    if (err) {
+                        context.msg = "An unexpected error has occurred";
+                    } else {
+                        context.inserted = req.query.Code;
+                    }
+
+                    res.send(JSON.stringify(context));
+                })
+        }
     })
+
+
 });
 
 //Inserts a record into City using AJAX calls from the home page via script
 app.get('/insertCity',function(req,res,next){
   
-    console.log("Insert City handler has been fired");
-
     var context = {};
-    
-    mysql.pool.query("INSERT INTO `City` (`Name`, `State`) VALUES (?, ?)",
-        [req.query.Name,
-		 req.query.State], 
+    context.inserted = 0;
 
-        function(err, result){
-            if(err){
-              next(err);
-              console.log(err);
-              return;
-            }
-			
-            context.inserted = result.insertId;
+    mysql.pool.query('SELECT Id FROM City WHERE Name = ? and State = ? LIMIT 1', [req.query.Name, req.query.State], function (err, rows, fields) {
+
+        if (err) {
+            context.msg = "An unexpected error has occurred";
             res.send(JSON.stringify(context));
+        } else if (rows.length > 0) {
+            //duplicate!
+            context.msg = "This city already exists.";
+            res.send(JSON.stringify(context));
+        } else {
+            mysql.pool.query("INSERT INTO `City` (`Name`, `State`) VALUES (?, ?)", [req.query.Name, req.query.State],
+
+                function (err, result) {
+                    if (err) {
+                        context.msg = "An unexpected error has occurred";
+                    } else {
+                        context.inserted = result.insertId;
+                    }
+
+                    res.send(JSON.stringify(context));
+                })
+
+        }
     })
 		
 });
@@ -503,32 +551,41 @@ app.get('/insertCity',function(req,res,next){
 //Inserts a record into Feature using AJAX calls from the home page via script
 app.get('/insertFeature',function(req,res,next){
   
-    console.log("Insert Feature handler has been fired");
-
     var context = {};
-    
-    mysql.pool.query("INSERT INTO `Feature` (`Name`) VALUES (?)",
-        [req.query.Name], 
+    context.inserted = 0;
 
-        function(err, result){
-            if(err){
-              next(err);
-              console.log(err);
-              return;
-            }
-			
-            context.inserted = result.insertId;
+    mysql.pool.query('SELECT Id FROM Feature WHERE Name = ? LIMIT 1', [req.query.Name], function (err, rows, fields) {
+
+        if (err) {
+            context.msg = "An unexpected error has occurred";
             res.send(JSON.stringify(context));
+        } else if (rows.length > 0) {
+            //duplicate!
+            context.msg = "This feature already exists.";
+            res.send(JSON.stringify(context));
+        } else {
+            mysql.pool.query("INSERT INTO `Feature` (`Name`) VALUES (?)",
+                [req.query.Name],
+
+                function (err, result) {
+                    if (err) {
+                        context.msg = "An unexpected error has occurred";
+                    } else {
+                        context.inserted = result.insertId;
+                    }
+
+                    res.send(JSON.stringify(context));
+                })
+        }
     })
 });
 
 //Inserts a record into Listing using AJAX calls from the home page via script
 app.get('/insertListing',function(req,res,next){
   
-    console.log("Insert Listing handler has been fired");
-
     var context = {};
-    
+    context.inserted = 0;
+
     mysql.pool.query("INSERT INTO `Listing` (`Address`, `City`, `ZipCode`, `PropertyType`, `ByOwner`, `DateListed`, `ListPrice`, `DateSold`, `SellPrice`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [req.query.Address,
 		 req.query.City,
@@ -541,14 +598,37 @@ app.get('/insertListing',function(req,res,next){
 		 req.query.SellPrice], 
 
         function(err, result){
-            if(err){
-              next(err);
-              console.log(err);
-              return;
+            if (err) {
+                context.msg = "An unexpected error has occurred";
+                res.send(JSON.stringify(context));
+
+            } else {
+                mysql.pool.query('SELECT Listing.Id, Listing.Address, City.Name as City, ' +
+                    'Listing.ZipCode, PropertyType.Name as PropertyType, Listing.ByOwner, ' +
+                    'Listing.DateListed, Listing.ListPrice, Listing.DateSold, Listing.SellPrice ' +
+                    'FROM Listing INNER JOIN City ON Listing.City = City.Id INNER JOIN PropertyType ON Listing.PropertyType = PropertyType.Id WHERE Listing.Id = ? LIMIT 1', [result.insertId], function (err, rows, fields) {
+                        if (err) {
+                            context.msg = "An unexpected error has occurred";
+                        } else {
+                            context.Address = rows[0].Address;
+                            context.City = rows[0].City;
+                            context.ZipCode = rows[0].ZipCode;
+                            context.PropertyType = rows[0].PropertyType;
+                            context.ByOwner = (rows[0].ByOwner ? "Yes" : "");
+                            context.DateListed = formatDate(rows[0].DateListed);
+                            context.ListPrice = formatMoney(rows[0].ListPrice);
+                            context.DateSold = formatDate(rows[0].DateSold);
+                            context.SellPrice = formatMoney(rows[0].SellPrice);
+                        }
+
+                        context.inserted = result.insertId;
+                        res.send(JSON.stringify(context));
+
+                    }
+                )
             }
 			
-            context.inserted = result.insertId;
-            res.send(JSON.stringify(context));
+
     })
 });
 
@@ -712,6 +792,11 @@ app.get('/updateListing', function (req, res, next) {
         var cities = [];
 
         context.results = rows[0];
+        context.results.DateListed = formatDate_Input(context.results.DateListed);
+        context.results.DateSold = formatDate_Input(context.results.DateSold);
+
+
+
 
         mysql.pool.query('SELECT City.Id, City.Name, State.Name as State FROM City INNER JOIN State ON City.State = State.Id ORDER BY City.Name ASC', function (err, rows, fields) {
 
@@ -754,118 +839,139 @@ app.get('/updateListing', function (req, res, next) {
 });
 
 
-
 //updates a state record with values submitted by the user.
 app.put('/updateState/:id', function (req, res) {
-    console.log(req.body);
-    console.log(req.params.id);
-
-    var sql = "UPDATE State SET Name=? WHERE Id=?";
+    var response = {success: 0, msg: ""} 
     var inserts = [req.body.Name, req.params.id];
-    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
-        res.setHeader('Content-Type', 'application/json');
-        console.log(results);
-        if (error) {
-            console.log(error)
-            res.end(JSON.stringify(error));
+
+    mysql.pool.query('SELECT Id FROM State WHERE Name = ? and Id <> ? LIMIT 1', inserts, function (err, rows, fields) {
+        if (err) {
+            response.msg = "An unexpected error has occurred";
+            res.send(JSON.stringify(response));
+        } else if (rows.length > 0) {
+            //duplicate!
+            response.msg = "This state already exists.";
+            res.send(JSON.stringify(response));
         } else {
-            var response = {
-                status: 200,
-                success: 'Updated Successfully'
-            }
-            res.status(200);
-            res.end(JSON.stringify(response));
+            sql = mysql.pool.query("UPDATE State SET Name=? WHERE Id=?", inserts, function (error, results, fields) {
+                res.setHeader('Content-Type', 'application/json');
+                console.log(results);
+                if (error) {
+                    response.msg = "An unexpected error has occurred.";
+                    res.end(JSON.stringify(error));
+                } else {
+                    response.status = 200;
+                    response.success = 1
+
+                    res.status(200);
+                    res.end(JSON.stringify(response));
+                }
+            });
         }
-    });
+    })
+
+
 });
 
 
-//updates a zip code record with values submitted by the user.
-app.put('/updateZip/:id', function (req, res) {
-    var sql = "UPDATE ZipCode SET Code=? WHERE Code=?";
-    console.log("updating zip - " + req.params.id);
-    var inserts = [req.params.code, req.params.id];
-    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
-        res.setHeader('Content-Type', 'application/json');
-        if (error) {
-            console.log(error)
-            res.end(JSON.stringify(error));
-        } else {
-            var response = {
-                status: 200,
-                success: 'Updated Successfully'
-            }
-            res.status(200);
-            res.end(JSON.stringify(response));
-        }
-    });
-});
 
 
 //updates a City record with values submitted by the user.
 app.put('/updateCity/:id', function (req, res) {
-    var sql = "UPDATE City SET Name=?, State=? WHERE Id=?";
-    var inserts = [req.body.Name, req.body.State, req.params.id];
-    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
-        res.setHeader('Content-Type', 'application/json');
-        if (error) {
-            console.log(error)
-            res.end(JSON.stringify(error));
+    var response = { success: 0, msg: "" } 
+
+    mysql.pool.query('SELECT Id FROM City WHERE Name = ? and State= ? and Id <> ? LIMIT 1', [req.body.Name, req.body.State, req.params.id], function (err, rows, fields) {
+        if (err) {
+            response.msg = "An unexpected error has occurred.";
+            res.send(JSON.stringify(response));
+        } else if (rows.length > 0) {
+            //duplicate!
+            response.msg = "This city already exists.";
+            res.send(JSON.stringify(response));
         } else {
-            var response = {
-                status: 200,
-                success: 'Updated Successfully'
-            }
-            res.status(200);
-            res.end(JSON.stringify(response));
+            sql = mysql.pool.query("UPDATE City SET Name=?, State=? WHERE Id=?", [req.body.Name, req.body.State, req.params.id], function (error, results, fields) {
+                res.setHeader('Content-Type', 'application/json');
+                if (error) {
+                    response.msg = "An unexpected error has occurred.";
+                    res.end(JSON.stringify(error));
+                } else {
+                    response.status = 200;
+                    response.success = 1
+
+                    res.status(200);
+                    res.end(JSON.stringify(response));
+                }
+            });
         }
-    });
+    })
+
+
 });
 
 
 //updates a Feature record with values submitted by the user.
 app.put('/updateFeature/:id', function (req, res) {
+    var response = { success: 0, msg: "" } 
 
-    var sql = "UPDATE Feature SET Name=? WHERE Id=?";
-    var inserts = [req.body.Name, req.params.id];
-    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
-        res.setHeader('Content-Type', 'application/json');
-        console.log(results);
-        if (error) {
-            console.log(error)
-            res.end(JSON.stringify(error));
+    mysql.pool.query('SELECT Id FROM Feature WHERE Name = ? and Id <> ? LIMIT 1', [req.body.Name, req.params.id], function (err, rows, fields) {
+        if (err) {
+            response.msg = "An unexpected error has occurred";
+            res.send(JSON.stringify(response));
+        } else if (rows.length > 0) {
+            //duplicate!
+            response.msg = "This property-type already exists.";
+            res.send(JSON.stringify(response));
         } else {
-            var response = {
-                status: 200,
-                success: 'Updated Successfully'
-            }
-            res.status(200);
-            res.end(JSON.stringify(response));
+            sql = mysql.pool.query("UPDATE Feature SET Name=? WHERE Id=?", [req.body.Name, req.params.id], function (error, results, fields) {
+                res.setHeader('Content-Type', 'application/json');
+                if (error) {
+                    response.msg = "An unexpected error has occurred.";
+                    res.end(JSON.stringify(error));
+                } else {
+                    response.status = 200;
+                    response.success = 1
+
+                    res.status(200);
+                    res.end(JSON.stringify(response));
+                }
+            });
         }
-    });
+    })
+
+
 });
 
 
 //updates a Property-Type record with values submitted by the user.
 app.put('/updateProperty/:id', function (req, res) {
+    var response = { success: 0, msg: "" } 
 
-    var sql = "UPDATE PropertyType SET Name=? WHERE Id=?";
-    var inserts = [req.body.Name, req.params.id];
-    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
-        res.setHeader('Content-Type', 'application/json');
-        console.log(results);
-        if (error) {
-            console.log(error)
-            res.end(JSON.stringify(error));
+    mysql.pool.query('SELECT Id FROM PropertyType WHERE Name = ? and Id <> ? LIMIT 1', [req.body.Name, req.params.id], function (err, rows, fields) {
+        if (err) {
+            response.msg = "An unexpected error has occurred";
+            res.send(JSON.stringify(response));
+        } else if (rows.length > 0) {
+            //duplicate!
+            response.msg = "This property-type already exists.";
+            res.send(JSON.stringify(response));
         } else {
-            var response = {
-                status: 200,
-                success: 'Updated Successfully'
-            }
-            res.status(200);
-            res.end(JSON.stringify(response));
+            sql = mysql.pool.query("UPDATE PropertyType SET Name=? WHERE Id=?", [req.body.Name, req.params.id], function (error, results, fields) {
+                res.setHeader('Content-Type', 'application/json');
+                if (error) {
+                    response.msg = "An unexpected error has occurred.";
+                    res.end(JSON.stringify(error));
+                } else {
+                    response.status = 200;
+                    response.success = 1
+
+                    res.status(200);
+                    res.end(JSON.stringify(response));
+                }
+            });
         }
-    });
+    })
+
+
 });
 
 
@@ -873,6 +979,8 @@ app.put('/updateProperty/:id', function (req, res) {
 
 //updates a listing record with values submitted by the user.
 app.put('/updateListing/:id', function (req, res) {
+    var response = { success: 0, msg: "" } 
+
     var sql = "UPDATE Listing SET Address=?, City=?, ZipCode=?, PropertyType=?, ByOwner=?, DateListed=?, ListPrice=?, DateSold=?, SellPrice=? WHERE Id=?";
     var inserts = [
         req.body.Address,
@@ -889,13 +997,12 @@ app.put('/updateListing/:id', function (req, res) {
     sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
         res.setHeader('Content-Type', 'application/json');
         if (error) {
-            console.log(error)
+            response.msg = "An unexpected error has occurred.";
             res.end(JSON.stringify(error));
         } else {
-            var response = {
-                status: 200,
-                success: 'Updated Successfully'
-            }
+            response.status = 200;
+            response.success = 1
+
             res.status(200);
             res.end(JSON.stringify(response));
         }
